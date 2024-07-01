@@ -1,0 +1,75 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Users {
+    id          Int           @id @default(autoincrement())
+    createdAt   DateTime      @default(now())
+    updatedAt   DateTime      @updatedAt
+    name        String
+    number      String        @unique
+    email       String?       @unique
+    credentials Credentials[]
+    Contacts    Contacts[]
+    SpamReport  SpamReport[]
+    GlobalDB    GlobalDB[]
+
+    @@map("users")
+}
+
+model Credentials {
+    id     Int    @id @default(autoincrement())
+    userId Int
+    user   Users  @relation(fields: [userId], references: [id])
+    token  String
+    hash   String
+
+    @@map("credentials")
+}
+
+model Contacts {
+    id     Int    @id @default(autoincrement())
+    userId Int
+    user   Users  @relation(fields: [userId], references: [id])
+    number String
+    name   String
+
+    @@map("contacts")
+}
+
+model GlobalDB {
+    id               Int          @id @default(autoincrement())
+    isRegistered     Boolean      @default(false)
+    number           String       @unique
+    name             Name[]
+    SpamReport       SpamReport[]
+    registeredUser   Users?       @relation(fields: [registeredUserId], references: [id])
+    registeredUserId Int?
+
+    @@map("globalDB")
+}
+
+model Name {
+    id         Int       @id @default(autoincrement())
+    name       String
+    GlobalDB   GlobalDB @relation(fields: [globalDBId], references: [id])
+    globalDBId Int
+
+    @@map("names")
+}
+
+model SpamReport {
+    id           Int       @id @default(autoincrement())
+    reportedAt   DateTime  @default(now())
+    GlobalDB     GlobalDB @relation(fields: [globalDBId], references: [id])
+    globalDBId   Int
+    reportedBy   Users     @relation(fields: [reportedById], references: [id])
+    reportedById Int
+
+    @@map("spamReport")
+}
